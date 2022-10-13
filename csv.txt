@@ -1,0 +1,116 @@
+function Based CSV IMPORT 
+
+MODEL.PY 
+
+
+class Country(models.Model):
+    name	= models.CharField(max_length=20)
+
+  
+
+    # iso3	= models.CharField(max_length=20)
+    # iso2	= models.CharField(max_length=20)
+    # numeric_code	= models.IntegerField()
+    # phone_code	= models.CharField(max_length=20)
+    # capital=  models.CharField(max_length=20)
+    # currency	= models.CharField(max_length=20)
+    # currency_name	=  models.CharField(max_length=20)
+    # currency_symbol	 =  models.CharField(max_length=20)
+    # tld	 =  models.CharField(max_length=20)
+    # native	  =  models.CharField(max_length=20)
+    # region	 =  models.CharField(max_length=20)
+    # subregion	=  models.CharField(max_length=20)
+    # timezones	=  models.CharField(max_length=255)
+    # latitude	= models.FloatField()
+    # longitude	= models.FloatField()
+
+    # def __str__(self):
+    #     return self.name
+
+
+========
+def import_data_csv(request,):
+    with open("/home/visiontrek-pc/Sajal/ProjectCSV/country1.csv") as f:                         #https://stackoverflow.com/questions/2459979/how-to-import-csv-data-into-django-models
+        reader = csv.reader(f)
+        next(f)
+        for row in reader:
+            _, created = Country.objects.get_or_create(
+
+                
+                name=row[0],
+                address=row[1],
+            
+                
+            )
+
+============
+
+USING PANDAS 
+def import_data_csv(request,):
+    df=pd.read_csv('country.csv')
+    data = pd.DataFrame(df)
+
+    for index ,row in data.iterrows():
+        _, created = Country.objects.get_or_create(
+                        name = row['name'],
+                        iso3  =  row['iso3'],
+                        iso2 = row['iso2'],
+                        numeric_code   = row['numeric_code'],
+                        phone_code   = row['phone_code'],
+                        capital   = row['capital'],
+                        currency    = row['currency'],
+                        currency_name    = row['currency_name'],
+                        currency_symbol   = row['currency_symbol'],
+                        tld   = row['tld'],
+                        native   = row['native'],
+                        region    = row['region'],
+                        subregion   = row['subregion'],
+                        timezones    = row['timezones'],
+                        latitude   = row['latitude'],
+                        longitude   = row['longitude'], )
+
+                       
+
+                  
+
+
+    return HttpResponse("Done"
+
+
+
+
+# SERILIZER  IMPORT CSV DYANMICALLY 
+
+
+SERILIZER.PY 
+======
+from rest_framework import serializers
+
+from .models import *
+
+
+
+class fileuploadserilizer(serializers.Serializer):
+    file= serializers.FileField()
+
+
+
+VIEW.PY 
+=====
+
+
+
+class countrydetails(generics.CreateAPIView):
+    serializer_class = fileuploadserilizer
+    def post(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        file = serializer.validated_data['file']
+        reader = pd.read_csv(file)
+        for index ,row in reader.iterrows():
+            _, created = Country.objects.get_or_create(
+                name= row['name'])
+
+        return Response({"status": "success"},
+                        status.HTTP_201_CREATED)
+
